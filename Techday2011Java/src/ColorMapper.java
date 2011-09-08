@@ -11,7 +11,7 @@ public class ColorMapper {
 		int i = 0;
 		for (String value: values) {
 			retVal.put(value, COLORS[i % COLORS.length]);
-			i ++;
+			i++;
 		}
 		return retVal;
 	}
