@@ -7,109 +7,109 @@ import java.util.Set;
 
 
 public class Candlestick {
-	private String acao;
-	private double abertura;
-	private double fechamento;
-	private double minimo;
-	private double maximo;
+	private String stock;
+	private double open;
+	private double close;
+	private double low;
+	private double high;
 	private double volume;
 	
-	public Candlestick(String acao, double abertura, double fechamento, double minimo, double maximo, double volume){
-		if(acao == null) throw new IllegalArgumentException("acao nao pode ser nulo");
-		if(abertura < 0.0) throw new IllegalArgumentException("abertura deve ser positivo");
-		if(fechamento < 0.0) throw new IllegalArgumentException("fechamento deve ser positivo");
-		if(minimo < 0.0) throw new IllegalArgumentException("minimo deve ser positivo");
-		if(maximo < 0.0) throw new IllegalArgumentException("maximo deve ser positivo");
-		if(volume < 0.0) throw new IllegalArgumentException("volume deve ser positivo");
-		this.acao = acao;
-		this.abertura = abertura;
-		this.fechamento = fechamento;
-		this.minimo = minimo;
-		this.maximo = maximo;
+	public Candlestick(String stock, double open, double close, double low, double high, double volume){
+		if(stock == null) throw new IllegalArgumentException("stock cannot be null");
+		if(open < 0.0) throw new IllegalArgumentException("open must be positive");
+		if(close < 0.0) throw new IllegalArgumentException("close must be positive");
+		if(low < 0.0) throw new IllegalArgumentException("low must be positive");
+		if(high < 0.0) throw new IllegalArgumentException("high must be positive");
+		if(volume < 0.0) throw new IllegalArgumentException("volume must be positive");
+		this.stock = stock;
+		this.open = open;
+		this.close = close;
+		this.low = low;
+		this.high = high;
 		this.volume = volume;
 	}
 	
-	public boolean isAlta(){
-		return abertura < fechamento;
+	public boolean isHigh(){
+		return open < close;
 	}
 	
-	public boolean isBaixa(){
-		return !isAlta();
+	public boolean isLow(){
+		return !isHigh();
 	}
 	
 	public String toString(){
-		return String.format("acao: %s, abertura: %.2f, fechamento: %.2f, minimo: %.2f, maximo: %.2f, volume: %.2f", acao, abertura, fechamento, minimo, maximo, volume);
+		return String.format("stock: %s, open: %.2f, close: %.2f, low: %.2f, high: %.2f, volume: %.2f, is high? %s", stock, open, close, low, high, volume, isHigh() ? "true" : false);
 	}
 	
-	public String getAcao() {
-		return acao;
+	public String getStock() {
+		return stock;
 	}
 
-	public double getAbertura() {
-		return abertura;
+	public double getOpen() {
+		return open;
 	}
 
-	public double getFechamento() {
-		return fechamento;
+	public double getClose() {
+		return close;
 	}
 
-	public double getMinimo() {
-		return minimo;
+	public double getLow() {
+		return low;
 	}
 
-	public double getMaximo() {
-		return maximo;
+	public double getHigh() {
+		return high;
 	}
 
 	public double getVolume() {
 		return volume;
 	}
 
-	public static Candlestick candlestick(List<Negocio> negocios){
-		if(!mesmaAcao(negocios)) throw new IllegalArgumentException("negocios devem ser da mesma acao");
-		if(negocios == null || negocios.isEmpty()){
+	public static Candlestick candlestick(List<Trade> trades){
+		if(!mesmaStock(trades)) throw new IllegalArgumentException("trades must by of the same stock");
+		if(trades == null || trades.isEmpty()){
 			return new Candlestick("", 0.0, 0.0, 0.0, 0.0, 0.0);
 		}
 		else{
-			double maior = Double.MIN_VALUE;
-			double menor = Double.MAX_VALUE;
+			double high = Double.MIN_VALUE;
+			double low = Double.MAX_VALUE;
 			double volume = 0.0;
-			for(Negocio n: negocios){				
-				if(n.getPreco() > maior){
-					maior = n.getPreco();
+			for(Trade n: trades){				
+				if(n.getPrice() > high){
+					high = n.getPrice();
 				}
-				if(n.getPreco() < menor){
-					menor = n.getPreco();
+				if(n.getPrice() < low){
+					low = n.getPrice();
 				}
 				volume += n.getVolume();
 			}
-			return new Candlestick(negocios.get(0).getAcao(), negocios.get(0).getPreco(), negocios.get(negocios.size() - 1).getPreco(), menor, maior, volume);
+			return new Candlestick(trades.get(0).getStock(), trades.get(0).getPrice(), trades.get(trades.size() - 1).getPrice(), low, high, volume);
 		}
 	}
 	
-	public static List<Candlestick> candlesticks(List<Negocio> negocios){
-		Map<String, List<Negocio>> mapa = new HashMap<String, List<Negocio>>();
-		for(Negocio n: negocios){
-			List<Negocio> lista = mapa.get(n.getAcao());
-			if(lista == null){
-				lista = new ArrayList<Negocio>();
-				mapa.put(n.getAcao(), lista);
+	public static List<Candlestick> candlesticks(List<Trade> trades){
+		Map<String, List<Trade>> map = new HashMap<String, List<Trade>>();
+		for(Trade n: trades){
+			List<Trade> list = map.get(n.getStock());
+			if(list == null){
+				list = new ArrayList<Trade>();
+				map.put(n.getStock(), list);
 			}
-			lista.add(n);			
+			list.add(n);			
 		}		
 		List<Candlestick> resultado = new ArrayList<Candlestick>();
-		for(List<Negocio> grupoNegocios: mapa.values()){
-			resultado.add(candlestick(grupoNegocios));
+		for(List<Trade> groupTrades: map.values()){
+			resultado.add(candlestick(groupTrades));
 		}
 			
 		return resultado;	
 	}
 	
-	private static boolean mesmaAcao(List<Negocio> negocios){
-		Set<String> acoes = new HashSet<String>();
-		for(Negocio n: negocios){
-			acoes.add(n.getAcao());
+	private static boolean mesmaStock(List<Trade> trades){
+		Set<String> stocks = new HashSet<String>();
+		for(Trade n: trades){
+			stocks.add(n.getStock());
 		}
-		return acoes.size() == 1;
+		return stocks.size() == 1;
 	}		
 }

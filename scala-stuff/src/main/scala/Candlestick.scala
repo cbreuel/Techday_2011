@@ -1,83 +1,77 @@
-class Negocio(val acao: String, val preco: Double, val quantidade: Int){
-	require(acao != null)
-	require(preco >= 0.0)
-	require(quantidade >= 0)
+class Trade(val stock: String, val price: Double, val quantity: Int){
+	require(stock != null)
+	require(price >= 0.0)
+	require(quantity >= 0)
 
-	def volume = preco * quantidade
+	def volume = price * quantity
 
-	override def toString = "acao: %s, preco: %.2f, quantidade: %d".format(						acao, preco, quantidade)
+	override def toString = "stock: %s, price: %.2f, quantity: %d".format(stock,price,quantity)
 }
 
-object Negocio {
-	def apply(acao: String = "", 
-				preco: Double = 0.0, 
-				quantidade: Int = 0	): Negocio = {
-		new Negocio(acao, preco, quantidade)
-	}
+object Trade {
+	def apply(stock: String = "", price: Double = 0.0, quantity: Int = 0) = 
+		new Trade(stock, price, quantity)	
 }
 
-class Candlestick(val acao: String, 
-					val abertura: Double, 
-					val fechamento: Double,
-					val minimo: Double, 
-					val maximo: Double, 
-					val volume: Double){
-	require(acao != null)
-	require(abertura >= 0.0)
-	require(fechamento >= 0.0)
-	require(minimo >= 0.0)
-	require(maximo >= 0.0)
+class Candlestick(val stock: String, val open: Double, val close: Double, val lower: Double, 
+					val high: Double, val volume: Double){
+	require(stock != null)
+	require(open >= 0.0)
+	require(close >= 0.0)
+	require(lower >= 0.0)
+	require(high >= 0.0)
 	require(volume >= 0.0)
 
-	def alta_? = abertura < fechamento
+	def high_? = open < close
 	
-	def baixa_? = !alta_?
+	def low_? = !high_?
 
-	override def toString = 
-	"acao: %s abertura %.2f, fechamento: %.2f, minimo: %.2f, maximo: %.2f, volume: %.2f".format(acao, abertura, fechamento, minimo, maximo, volume)
+	override def toString = "stock: %s open %.2f, close: %.2f, lower: %.2f, high: %.2f, volume: %.2f".format(
+		stock, open, close, lower, high, volume)
 }
 
 object Candlestick {
 	private lazy val nullCandlestick = newCandlestick()	
 
-	def candlesticks(negocios: List[Negocio]): List[Candlestick] = {
-		negocios.groupBy(_.acao).map {
-			case (_, lista) => Candlestick(lista)
+	def candlesticks(trades: List[Trade]): List[Candlestick] = {
+		trades.groupBy(_.stock).map {
+			case (_, list) => Candlestick(list)
 		}.toList
 	}
 
-	def apply(negocios: List[Negocio]): Candlestick = {
-		require(mesmaAcao(negocios))
-		negocios match {
+	def apply(trades: List[Trade]): Candlestick = {
+		require(sameStock(trades))
+		trades match {
 			case Nil => newCandlestick()
-			case lista => {
-				val maior = negocios.map(_.preco).max
-				val menor = negocios.map(_.preco).min
-				val volume = negocios.map(_.volume).sum				
-				newCandlestick(
-					lista.head.acao,
-					lista.head.preco,
-					lista.last.preco,
-					maior,menor,volume)
+			case list => {
+				val high = trades.map(_.price).max
+				val low = trades.map(_.price).min
+				val volume = trades.map(_.volume).sum				
+				newCandlestick(list.head.stock,
+								list.head.price,
+								list.last.price,
+								high,low,volume)
 			}
 		}	
 	}
 
-	private def mesmaAcao(negocios: List[Negocio]): Boolean = {
-		negocios.groupBy(_.acao).size == 1
+	private def sameStock(trades: List[Trade]): Boolean = {
+		trades.groupBy(_.stock).size == 1
 	}
 
-	private def newCandlestick(acao: String = "", 
-								abertura: Double = 0.0,
-								fechamento: Double = 0.0, 
-								maximo: Double = 0.0,
-								minimo: Double = 0.0,
+	private def newCandlestick(stock: String = "", 
+								open: Double = 0.0,
+								close: Double = 0.0, 
+								high: Double = 0.0,
+								lower: Double = 0.0, 
 								volume: Double = 0.0): Candlestick = {
-		new Candlestick(acao = acao, 
-						maximo = maximo, 
-						minimo = minimo,
-						fechamento = fechamento, 
-						abertura = abertura,
+		new Candlestick(stock = stock, 
+						high = high, 
+						lower = lower, 
+						close = close, 
+						open = open, 
 						volume = volume)
 	}
 }
+
+
